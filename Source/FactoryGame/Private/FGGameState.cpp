@@ -142,6 +142,7 @@ void AFGGameState::RemovePlayerState( APlayerState* playerState){ }
 void AFGGameState::OnPlayerStateSlotDataUpdated( AFGPlayerState* playerState){ }
 void AFGGameState::Init(){ }
 bool AFGGameState::AreClientSubsystemsValid() const{ return bool(); }
+const TArray<TSubclassOf<AFGSubsystem>>& AFGGameState::GetClientGatingSubsystemClasses(){ return *(new TArray<TSubclassOf<AFGSubsystem>>); }
 void AFGGameState::CheckClientSubsystemsValid(){ }
 int32 AFGGameState::FindFreeSlot( AFGPlayerState* playerState){ return int32(); }
 bool AFGGameState::IsTradingPostBuilt() const{ return bool(); }
@@ -193,6 +194,7 @@ void AFGGameState::OnRep_ActorRepresentationManager(){  }
 void AFGGameState::OnRep_ConveyorChainSubsystem(){  }
 void AFGGameState::OnRep_BlueprintSubsystem(){  }
 void AFGGameState::OnRep_VehicleSubsystem(){ }
+void AFGGameState::OnRep_SignSubsystem(){ }
 void AFGGameState::Server_SetPublicTodoList(const FString& newTodoList, const FPlayerInfoHandle& lastEditedBy){ }
 void AFGGameState::SetCreativeModeEnabled(){ }
 void AFGGameState::BroadcastAutoSaveTimeNotification(float timeLeft) const{ }
@@ -206,6 +208,9 @@ UE::Online::FAccountId AFGGameState::FindPlayerAccountIdByHandle(const FPlayerIn
 UE::Online::FAccountId AFGGameState::FindLastSeenPlayerAccountIdByHandle(const FPlayerInfoHandle& playerInfoHandle) const{ return UE::Online::FAccountId(); }
 const FCachedPlayerInfo* AFGGameState::FindPlayerInfoDataByHandle(const FPlayerInfoHandle& playerInfoHandle) const{ return nullptr; }
 TArray<FCachedPlayerInfo> AFGGameState::GetOfflineCachedPlayerInfosInSession() const{ return TArray<FCachedPlayerInfo>(); }
+int32 AFGGameState::Authority_AllocateNewBlueprintBuildEffectID(){ return int32(); }
+void AFGGameState::Multicast_AddPendingBlueprintBuildEffect_Implementation(int32 blueprintBuildEffectID, const FTransform& originTransform, int32 expectedBuildingsAndLightweightsCount, APawn* buildEffectInstigator){ }
+void AFGGameState::Multicast_ForceCleanupPendingBlueprintBuildEffect_Implementation(int32 blueprintBuildEffectID){ }
 void AFGGameState::OnRep_CheatNoPower(){ }
 void AFGGameState::OnRep_CreativeModeEnabled(){ }
 void AFGGameState::UpdateServerRealTimeSeconds(){  }
