@@ -156,6 +156,10 @@ public:
 	UFUNCTION( BlueprintPure, Category = "Subsystems" )
 	bool AreClientSubsystemsValid() const;
 
+	/** Classes checked by AreClientSubsystemsValid() below - keep in sync with that function's pointer list. Split in two because
+	 * FGReplicationGraph needs this at NetDriver init, before any subsystem here has actually been spawned (see AFGGameState::Init). */
+	static const TArray<TSubclassOf<AFGSubsystem>>& GetClientGatingSubsystemClasses();
+
 	UFUNCTION()
 	void CheckClientSubsystemsValid();
 
@@ -452,6 +456,7 @@ public:
 	UFUNCTION() void OnRep_ConveyorChainSubsystem();
 	UFUNCTION() void OnRep_BlueprintSubsystem();
 	UFUNCTION() void OnRep_VehicleSubsystem();
+	UFUNCTION() void OnRep_SignSubsystem();
 	
 	FORCEINLINE FString GetPublicTodoList() const { return mPublicTodoList; }
 //<FL>[KonradA] edited to support last edited by
@@ -513,7 +518,18 @@ public:
 	UFUNCTION( BlueprintCallable, BlueprintPure = false, Category = "FactoryGame|Online" )
 	TArray<FCachedPlayerInfo> GetOfflineCachedPlayerInfosInSession() const;
 
+	/** Allocates a new blueprint build effect ID. To play a Blueprint build effect, call this, then SetBlueprintBuildEffectID on buildings, and then finish with Server_FinalizeBlueprintBuildEffect */
+	int32 Authority_AllocateNewBlueprintBuildEffectID();
+
+	/** Broadcast to let the clients know that we want to schedule a group build effect with the given ID and expected number of objects */
+	UFUNCTION( NetMulticast, Reliable )
+	void Multicast_AddPendingBlueprintBuildEffect( int32 blueprintBuildEffectID, const FTransform& originTransform, int32 expectedBuildingsAndLightweightsCount, APawn* buildEffectInstigator );
+
+	/** Broadcast to let the clients now that build effect with the given ID has finished playing */
+	UFUNCTION( NetMulticast, Reliable )
+	void Multicast_ForceCleanupPendingBlueprintBuildEffect( int32 blueprintBuildEffectID );
 private:
+
 	UFUNCTION()
 	void OnRep_CheatNoPower();
 
@@ -621,6 +637,8 @@ public:
 	FOnSingleSubsystemReplicatedDelegate mOnBlueprintSubsystemReplicated;
 	/** Called on the client when the vehicle subsystem is available */
 	FOnSingleSubsystemReplicatedDelegate mOnVehicleSubsystemReplicated;
+	/** Called on the client when the sign subsystem is available */
+	FOnSingleSubsystemReplicatedDelegate mOnSignSubsystemReplicated;
 
 private:
 	/** Spawned subsystems */
@@ -668,7 +686,7 @@ private:
 	TObjectPtr<class AFGDroneSubsystem> mDroneSubsystem;
 	UPROPERTY( SaveGame )
 	TObjectPtr<class AFGStatisticsSubsystem> mStatisticsSubsystem;
-	UPROPERTY( Replicated )
+	UPROPERTY( ReplicatedUsing = OnRep_SignSubsystem )
 	TObjectPtr<class AFGSignSubsystem> mSignSubsystem;
 	UPROPERTY( Replicated )
 	TObjectPtr<class AFGCreatureSubsystem> mCreatureSubsystem;
@@ -833,6 +851,8 @@ private:
 	/** If the player have enabled creative mode for this game. This means they can change settings in advanced game settings menu */
 	UPROPERTY( SaveGame, ReplicatedUsing = OnRep_CreativeModeEnabled )
 	bool mIsCreativeModeEnabled = false;
+
+	int32 mCurrentBlueprintBuildEffectID{0};
 
 public:
 	UFUNCTION()
